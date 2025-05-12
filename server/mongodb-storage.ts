@@ -196,7 +196,8 @@ export class MongoStorage implements IStorage {
 
   async getCollection(id: number): Promise<Collection | undefined> {
     try {
-      const collection = await CollectionModel.findById(id);
+      // Use a query by numeric ID instead of MongoDB ObjectId
+      const collection = await CollectionModel.findOne({ _id: id.toString() });
       return collection ? this.documentToCollection(collection) : undefined;
     } catch (error) {
       console.error(`Error getting collection ${id}:`, error);
@@ -223,8 +224,8 @@ export class MongoStorage implements IStorage {
 
   async updateCollection(id: number, updateData: Partial<InsertCollection>): Promise<Collection> {
     try {
-      const updated = await CollectionModel.findByIdAndUpdate(
-        id,
+      const updated = await CollectionModel.findOneAndUpdate(
+        { _id: id.toString() },
         {
           ...updateData,
           updatedAt: new Date()
@@ -245,9 +246,9 @@ export class MongoStorage implements IStorage {
 
   async deleteCollection(id: number): Promise<void> {
     try {
-      await CollectionModel.findByIdAndDelete(id);
+      await CollectionModel.findOneAndDelete({ _id: id.toString() });
       // Also delete all media items in the collection
-      await MediaItemModel.deleteMany({ collectionId: id });
+      await MediaItemModel.deleteMany({ collectionId: id.toString() });
     } catch (error) {
       console.error(`Error deleting collection ${id}:`, error);
       throw error;
@@ -257,7 +258,8 @@ export class MongoStorage implements IStorage {
   // Media methods
   async getMediaByCollection(collectionId: number): Promise<MediaItem[]> {
     try {
-      const mediaItems = await MediaItemModel.find({ collectionId }).sort({ createdAt: -1 });
+      // Use string ID instead of ObjectId
+      const mediaItems = await MediaItemModel.find({ collectionId: collectionId.toString() }).sort({ createdAt: -1 });
       return mediaItems.map(doc => this.documentToMediaItem(doc));
     } catch (error) {
       console.error(`Error getting media for collection ${collectionId}:`, error);
@@ -267,7 +269,7 @@ export class MongoStorage implements IStorage {
 
   async getMedia(id: number): Promise<MediaItem | undefined> {
     try {
-      const mediaItem = await MediaItemModel.findById(id);
+      const mediaItem = await MediaItemModel.findOne({ _id: id.toString() });
       return mediaItem ? this.documentToMediaItem(mediaItem) : undefined;
     } catch (error) {
       console.error(`Error getting media ${id}:`, error);
@@ -277,17 +279,20 @@ export class MongoStorage implements IStorage {
 
   async createMedia(insertMedia: InsertMediaItem): Promise<MediaItem> {
     try {
-      const newMedia = new MediaItemModel({
+      // Make a copy and convert collectionId to string
+      const mediaData: any = { 
         ...insertMedia,
+        collectionId: insertMedia.collectionId.toString(),
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      };
       
+      const newMedia = new MediaItemModel(mediaData);
       const saved = await newMedia.save();
       
       // Update the item count in the collection
-      await CollectionModel.findByIdAndUpdate(
-        insertMedia.collectionId,
+      await CollectionModel.findOneAndUpdate(
+        { _id: insertMedia.collectionId.toString() },
         { $inc: { itemCount: 1 }, updatedAt: new Date() }
       );
       
@@ -300,10 +305,16 @@ export class MongoStorage implements IStorage {
 
   async updateMedia(id: number, updateData: Partial<InsertMediaItem>): Promise<MediaItem> {
     try {
-      const updated = await MediaItemModel.findByIdAndUpdate(
-        id,
+      // Convert any collectionId to string if it exists in updateData
+      const processedUpdateData: any = { ...updateData };
+      if (processedUpdateData.collectionId) {
+        processedUpdateData.collectionId = processedUpdateData.collectionId.toString();
+      }
+      
+      const updated = await MediaItemModel.findOneAndUpdate(
+        { _id: id.toString() },
         {
-          ...updateData,
+          ...processedUpdateData,
           updatedAt: new Date()
         },
         { new: true }
@@ -322,16 +333,16 @@ export class MongoStorage implements IStorage {
 
   async deleteMedia(id: number): Promise<void> {
     try {
-      const media = await MediaItemModel.findById(id);
+      const media = await MediaItemModel.findOne({ _id: id.toString() });
       
       if (media) {
         // Update the item count in the collection
-        await CollectionModel.findByIdAndUpdate(
-          media.collectionId,
+        await CollectionModel.findOneAndUpdate(
+          { _id: media.collectionId.toString() },
           { $inc: { itemCount: -1 }, updatedAt: new Date() }
         );
         
-        await MediaItemModel.findByIdAndDelete(id);
+        await MediaItemModel.findOneAndDelete({ _id: id.toString() });
       }
     } catch (error) {
       console.error(`Error deleting media ${id}:`, error);
