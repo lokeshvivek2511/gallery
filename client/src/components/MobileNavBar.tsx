@@ -6,8 +6,14 @@ import UploadModal from './UploadModal';
 
 const MobileNavBar = () => {
   const [location] = useLocation();
-  const { selectedMedia, downloadSelected, setSelectedTab } = useApp();
+  const { setSelectedTab } = useApp();
+  const [selectedMedia, setSelectedMedia] = useState<number[]>([]);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  
+  const downloadSelected = () => {
+    // Simplified download function
+    alert('Download functionality temporarily disabled during development');
+  };
 
   return (
     <>

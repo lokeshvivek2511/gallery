@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Header from '@/components/Header';
 import Collections from '@/components/Collections';
 import QuoteCard from '@/components/QuoteCard';

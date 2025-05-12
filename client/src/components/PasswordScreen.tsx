@@ -3,15 +3,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { HeartIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useApp } from '../contexts/AppContext';
 
-interface PasswordScreenProps {
-  onAuthenticate: () => void;
-}
-
-const PasswordScreen = ({ onAuthenticate }: PasswordScreenProps) => {
+const PasswordScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setIsAuthenticated } = useApp();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +19,7 @@ const PasswordScreen = ({ onAuthenticate }: PasswordScreenProps) => {
       // The default password is "lokiroja"
       if (password === 'lokiroja') {
         localStorage.setItem('isAuthenticated', 'true');
-        onAuthenticate();
+        setIsAuthenticated(true);
       } else {
         setError(true);
         setTimeout(() => setError(false), 2000);

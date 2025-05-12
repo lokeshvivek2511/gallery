@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,36 +10,30 @@ import Collection from "@/pages/Collection";
 import Recent from "@/pages/Recent";
 import Favorites from "@/pages/Favorites";
 import HeartAnimation from './components/HeartAnimation';
-import { AppProvider } from "./contexts/AppContext";
+import { AppProvider, useApp } from "./contexts/AppContext";
 
+// Main app wrapper with providers
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="relative min-h-screen bg-[#FFF5F5]">
-          <Toaster />
-          <AppProvider>
-            <AppRoutes />
-          </AppProvider>
-        </div>
+        <AppProvider>
+          <div className="relative min-h-screen bg-[#FFF5F5]">
+            <Toaster />
+            <AppContent />
+          </div>
+        </AppProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
 }
 
-// AppRoutes is inside the AppProvider, so it can use useApp
-function AppRoutes() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  useEffect(() => {
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    if (storedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
-  }, []);
+// The actual content, using the context
+function AppContent() {
+  const { isAuthenticated } = useApp();
   
   if (!isAuthenticated) {
-    return <PasswordScreen onAuthenticate={() => setIsAuthenticated(true)} />;
+    return <PasswordScreen />;
   }
   
   return (
