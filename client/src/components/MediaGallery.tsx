@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Media } from '@shared/schema';
 import { Skeleton } from '@/components/ui/skeleton';
+import { queryClient } from '@/lib/queryClient';
 
 interface MediaGalleryProps {
   title?: string;
@@ -17,9 +18,27 @@ const MediaGallery = ({ title = "Our Memories", endpoint = "/api/media", collect
   const [currentViewMedia, setCurrentViewMedia] = useState<Media | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<number[]>([]);
   
-  // Simplified toggle functions
+  // Implement the favorites functionality 
   const toggleFavorite = async (id: number) => {
-    console.log('Toggle favorite temporarily disabled during development');
+    try {
+      // Make API call to toggle favorite status
+      await fetch(`/api/media/${id}/favorite`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/media/favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/media/recent'] });
+      
+      // Show success message
+      console.log('Favorite status toggled successfully');
+    } catch (error) {
+      console.error('Error toggling favorite status:', error);
+    }
   };
   
   const toggleSelectMedia = (id: number) => {

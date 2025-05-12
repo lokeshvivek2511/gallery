@@ -13,11 +13,12 @@ const Home = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-6 mb-16 md:mb-0">
-        {selectedTab === 'collections' ? (
-          <Collections />
-        ) : (
+        {/* Always show Collections for browsing categories */}
+        <Collections />
+        
+        {/* Show the rest of the content only when not in collections tab */}
+        {selectedTab !== 'collections' && (
           <>
-            <Collections />
             <QuoteCard />
             <MediaGallery />
           </>
