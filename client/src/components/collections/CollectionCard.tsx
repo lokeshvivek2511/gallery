@@ -65,10 +65,8 @@ export default function CollectionCard({ collection, viewType }: CollectionCardP
           </div>
           
           <div className="flex-grow">
-            <Link href={`/collection/${collection.id}`}>
-              <a className="hover:text-[hsl(var(--love-dark))]">
-                <h3 className="font-display text-xl font-semibold">{collection.name}</h3>
-              </a>
+            <Link href={`/collection/${collection.id}`} className="hover:text-[hsl(var(--love-dark))]">
+              <h3 className="font-display text-xl font-semibold">{collection.name}</h3>
             </Link>
             <p className="text-gray-600 text-sm mb-1 font-body">{collection.description}</p>
             <div className="flex justify-between items-center">
@@ -116,34 +114,30 @@ export default function CollectionCard({ collection, viewType }: CollectionCardP
   return (
     <>
       <div className="photo-card bg-white rounded-lg shadow-md overflow-hidden">
-        <Link href={`/collection/${collection.id}`}>
-          <a>
-            <div className="h-48 bg-[hsl(var(--love-pink))] relative overflow-hidden">
-              {collection.coverImage ? (
-                <img 
-                  src={collection.coverImage} 
-                  alt={collection.name} 
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white text-opacity-70">
-                  <Image size={48} />
-                </div>
-              )}
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-black opacity-30"></div>
-              <div className="absolute bottom-4 right-4">
-                <span className="bg-white bg-opacity-80 text-[hsl(var(--love-dark))] px-2 py-1 rounded-full text-sm font-body inline-flex items-center">
-                  <Image size={14} className="mr-1" /> {collection.itemCount || 0} items
-                </span>
+        <Link href={`/collection/${collection.id}`} className="block">
+          <div className="h-48 bg-[hsl(var(--love-pink))] relative overflow-hidden">
+            {collection.coverImage ? (
+              <img 
+                src={collection.coverImage} 
+                alt={collection.name} 
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white text-opacity-70">
+                <Image size={48} />
               </div>
+            )}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-black opacity-30"></div>
+            <div className="absolute bottom-4 right-4">
+              <span className="bg-white bg-opacity-80 text-[hsl(var(--love-dark))] px-2 py-1 rounded-full text-sm font-body inline-flex items-center">
+                <Image size={14} className="mr-1" /> {collection.itemCount || 0} items
+              </span>
             </div>
-          </a>
+          </div>
         </Link>
         <div className="p-4">
-          <Link href={`/collection/${collection.id}`}>
-            <a className="hover:text-[hsl(var(--love-dark))]">
-              <h3 className="font-display text-xl font-semibold mb-2">{collection.name}</h3>
-            </a>
+          <Link href={`/collection/${collection.id}`} className="hover:text-[hsl(var(--love-dark))]">
+            <h3 className="font-display text-xl font-semibold mb-2">{collection.name}</h3>
           </Link>
           <p className="text-gray-600 text-sm mb-3 font-body">{collection.description}</p>
           <div className="flex justify-between items-center">
