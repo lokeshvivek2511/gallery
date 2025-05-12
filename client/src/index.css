@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
 :root {
-  --background: 0 0% 100%;
+  --background: 350 100% 98%;
   --foreground: 20 14.3% 4.1%;
   --muted: 60 4.8% 95.9%;
   --muted-foreground: 25 5.3% 44.7%;
@@ -13,24 +15,23 @@
   --card-foreground: 20 14.3% 4.1%;
   --border: 20 5.9% 90%;
   --input: 20 5.9% 90%;
-  --primary: 340 82% 60%;
-  --primary-foreground: 355 100% 99%;
-  --secondary: 60 4.8% 95.9%;
+  --primary: 354 85% 70%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 350 100% 94%;
   --secondary-foreground: 24 9.8% 10%;
-  --accent: 60 4.8% 95.9%;
+  --accent: 350 100% 84%;
   --accent-foreground: 24 9.8% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 340 82% 60%;
+  --ring: 354 85% 70%;
   --radius: 0.5rem;
-  
+
   /* Custom colors */
-  --rose-light: 338 81% 88%;
-  --rose: 343 69% 68%;
-  --rose-dark: 348 65% 56%;
-  --cream: 0 100% 98%;
-  --mauve: 330 10% 33%;
-  --heart: 350 100% 65%;
+  --love-pink: 350 100% 91%;
+  --love-red: 354 85% 70%;
+  --love-dark: 345 68% 55%;
+  --love-light: 350 100% 98%;
+  --love-white: 0 100% 99%;
 }
 
 .dark {
@@ -44,16 +45,15 @@
   --card-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
-  --primary: 343 69% 68%;
-  --primary-foreground: 355 100% 99%;
+  --primary: 354 85% 70%;
+  --primary-foreground: 211 100% 99%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
   --accent: 240 3.7% 15.9%;
   --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 343 69% 68%;
-  --radius: 0.5rem;
+  --ring: 240 4.9% 83.9%;
 }
 
 @layer base {
@@ -62,96 +62,150 @@
   }
 
   body {
-    @apply font-sans antialiased bg-[#FFF5F5] text-foreground min-h-screen;
+    @apply font-sans bg-[hsl(var(--love-light))] text-foreground;
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .font-body {
+    font-family: 'Poppins', sans-serif;
   }
 }
 
-/* Custom classes */
-.font-dancing {
-  font-family: 'Dancing Script', cursive;
-}
+@layer utilities {
+  .bg-love-pink {
+    background-color: hsl(var(--love-pink));
+  }
 
-.font-poppins {
-  font-family: 'Poppins', sans-serif;
-}
+  .bg-love-red {
+    background-color: hsl(var(--love-red));
+  }
 
-.masonry-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
-}
+  .bg-love-dark {
+    background-color: hsl(var(--love-dark));
+  }
 
-.heart-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 50;
-  overflow: hidden;
+  .bg-love-light {
+    background-color: hsl(var(--love-light));
+  }
+
+  .bg-love-white {
+    background-color: hsl(var(--love-white));
+  }
+
+  .text-love-pink {
+    color: hsl(var(--love-pink));
+  }
+
+  .text-love-red {
+    color: hsl(var(--love-red));
+  }
+
+  .text-love-dark {
+    color: hsl(var(--love-dark));
+  }
+
+  .hover\:bg-love-pink:hover {
+    background-color: hsl(var(--love-pink));
+  }
+
+  .hover\:bg-love-red:hover {
+    background-color: hsl(var(--love-red));
+  }
+
+  .hover\:bg-love-dark:hover {
+    background-color: hsl(var(--love-dark));
+  }
+
+  .hover\:text-love-pink:hover {
+    color: hsl(var(--love-pink));
+  }
+
+  .hover\:text-love-red:hover {
+    color: hsl(var(--love-red));
+  }
+
+  .hover\:text-love-dark:hover {
+    color: hsl(var(--love-dark));
+  }
+
+  .border-love-pink {
+    border-color: hsl(var(--love-pink));
+  }
+
+  .hover\:border-love-red:hover {
+    border-color: hsl(var(--love-red));
+  }
 }
 
 .floating-heart {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: rgba(255, 77, 109, 0.6);
-  transform: rotate(45deg);
-  animation: floatUp 5s ease-in-out infinite;
+  position: fixed;
+  z-index: -1;
+  opacity: 0.7;
+  animation-duration: 15s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
-.floating-heart:before,
-.floating-heart:after {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: rgba(255, 77, 109, 0.6);
-  border-radius: 50%;
-}
-
-.floating-heart:before {
-  top: -10px;
-  left: 0;
-}
-
-.floating-heart:after {
-  top: 0;
-  left: -10px;
-}
-
-@keyframes floatUp {
+@keyframes float-up {
   0% {
-    transform: translateY(100vh) scale(0) rotate(45deg);
-    opacity: 1;
+    transform: translateY(100vh) rotate(0deg);
   }
   100% {
-    transform: translateY(-100px) scale(1) rotate(45deg);
-    opacity: 0;
+    transform: translateY(-100px) rotate(360deg);
   }
 }
 
-@keyframes heartbeat {
-  0%, 100% { 
-    transform: scale(1);
-  }
-  50% { 
-    transform: scale(1.1); 
-  }
+.quote-text {
+  position: relative;
 }
 
-.animate-heartbeat {
-  animation: heartbeat 1.5s ease-in-out infinite;
+.quote-text::before, .quote-text::after {
+  content: '"';
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5em;
+  color: hsl(var(--love-red));
 }
 
-.animate-floating {
-  animation: floating 3s ease-in-out infinite;
+.photo-card {
+  transition: all 0.3s ease;
 }
 
-@keyframes floating {
-  0%, 100% { 
-    transform: translateY(0); 
-  }
-  50% { 
-    transform: translateY(-10px); 
-  }
+.photo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.upload-zone {
+  border: 2px dashed hsl(var(--love-pink));
+  transition: all 0.3s ease;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: hsl(var(--love-red));
+  background-color: rgba(255, 209, 220, 0.3);
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float 3s ease-in-out 1s infinite;
+}
+
+.animate-float-delay-2 {
+  animation: float 3s ease-in-out 2s infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }

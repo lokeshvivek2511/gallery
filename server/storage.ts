@@ -1,190 +1,226 @@
-import { collections, media, type User, type InsertUser, type Collection, type InsertCollection, type Media, type InsertMedia } from "@shared/schema";
+import { 
+  Collection, 
+  type InsertCollection, 
+  MediaItem, 
+  type InsertMediaItem 
+} from "@shared/schema";
+import path from "path";
+import fs from "fs";
 
+// Storage interface
 export interface IStorage {
-  // User methods
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
-  // Collection methods
+  // Collections
   getAllCollections(): Promise<Collection[]>;
   getCollection(id: number): Promise<Collection | undefined>;
   createCollection(collection: InsertCollection): Promise<Collection>;
-  updateCollection(id: number, collection: Partial<InsertCollection>): Promise<Collection | undefined>;
-  deleteCollection(id: number): Promise<boolean>;
+  updateCollection(id: number, collection: Partial<InsertCollection>): Promise<Collection>;
+  deleteCollection(id: number): Promise<void>;
   
-  // Media methods
-  getAllMedia(): Promise<Media[]>;
-  getMediaById(id: number): Promise<Media | undefined>;
-  getMediaByCollection(collectionId: number): Promise<Media[]>;
-  getFavoriteMedia(): Promise<Media[]>;
-  getRecentMedia(limit?: number): Promise<Media[]>;
-  createMedia(media: InsertMedia): Promise<Media>;
-  updateMedia(id: number, media: Partial<InsertMedia>): Promise<Media | undefined>;
-  toggleFavorite(id: number): Promise<Media | undefined>;
-  deleteMedia(id: number): Promise<boolean>;
+  // Media Items
+  getMediaByCollection(collectionId: number): Promise<MediaItem[]>;
+  getMedia(id: number): Promise<MediaItem | undefined>;
+  createMedia(media: InsertMediaItem): Promise<MediaItem>;
+  updateMedia(id: number, media: Partial<InsertMediaItem>): Promise<MediaItem>;
+  deleteMedia(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private collectionsMap: Map<number, Collection>;
-  private mediaMap: Map<number, Media>;
-  userCurrentId: number;
-  collectionCurrentId: number;
-  mediaCurrentId: number;
+  private collections: Map<number, Collection>;
+  private mediaItems: Map<number, MediaItem>;
+  private collectionIdCounter: number;
+  private mediaIdCounter: number;
 
   constructor() {
-    this.users = new Map();
-    this.collectionsMap = new Map();
-    this.mediaMap = new Map();
-    this.userCurrentId = 1;
-    this.collectionCurrentId = 1;
-    this.mediaCurrentId = 1;
+    this.collections = new Map();
+    this.mediaItems = new Map();
+    this.collectionIdCounter = 1;
+    this.mediaIdCounter = 1;
     
-    // Create default user
-    this.createUser({
-      username: "couple",
-      password: "lokiroja"
+    // Create sample collections
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Sample collections
+    const beachCollection = this.createCollection({
+      name: "Beach Getaway",
+      description: "Our magical weekend in the Maldives",
+      coverImage: "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400"
+    });
+
+    const anniversaryCollection = this.createCollection({
+      name: "Anniversary Dinner",
+      description: "Five years of love celebration",
+      coverImage: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400"
+    });
+
+    const danceCollection = this.createCollection({
+      name: "First Dance",
+      description: "The night we couldn't stop dancing",
+      coverImage: "https://images.unsplash.com/photo-1525318557657-5cc99530aa42?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400"
+    });
+
+    // Add sample media items to collections
+    const sampleMediaData = [
+      {
+        collectionId: beachCollection.id,
+        filename: "Sunset kiss.jpg",
+        url: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        thumbnail: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "image",
+        isFavorite: false,
+        description: "Sunset kiss"
+      },
+      {
+        collectionId: beachCollection.id,
+        filename: "Morning walk.jpg",
+        url: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        thumbnail: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "image",
+        isFavorite: true,
+        description: "Morning walk"
+      },
+      {
+        collectionId: beachCollection.id,
+        filename: "Golden hour.jpg",
+        url: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        thumbnail: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "image",
+        isFavorite: false,
+        description: "Golden hour"
+      },
+      {
+        collectionId: anniversaryCollection.id,
+        filename: "Romantic dinner.jpg",
+        url: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        thumbnail: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400",
+        type: "image",
+        isFavorite: true,
+        description: "Romantic dinner"
+      }
+    ];
+
+    sampleMediaData.forEach(item => {
+      this.createMedia(item as InsertMediaItem);
     });
   }
 
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-  
   // Collection methods
   async getAllCollections(): Promise<Collection[]> {
-    return Array.from(this.collectionsMap.values());
+    return Array.from(this.collections.values()).sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }
-  
+
   async getCollection(id: number): Promise<Collection | undefined> {
-    return this.collectionsMap.get(id);
+    return this.collections.get(id);
   }
-  
+
   async createCollection(insertCollection: InsertCollection): Promise<Collection> {
-    const id = this.collectionCurrentId++;
-    const createdAt = new Date();
-    const collection: Collection = { ...insertCollection, id, createdAt };
-    this.collectionsMap.set(id, collection);
+    const id = this.collectionIdCounter++;
+    const now = new Date().toISOString();
+    
+    const collection: Collection = {
+      id,
+      ...insertCollection,
+      itemCount: 0,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.collections.set(id, collection);
     return collection;
   }
-  
-  async updateCollection(id: number, collectionData: Partial<InsertCollection>): Promise<Collection | undefined> {
-    const collection = this.collectionsMap.get(id);
+
+  async updateCollection(id: number, updateData: Partial<InsertCollection>): Promise<Collection> {
+    const collection = this.collections.get(id);
     
     if (!collection) {
-      return undefined;
+      throw new Error(`Collection with id ${id} not found`);
     }
     
-    const updatedCollection: Collection = {
+    const updatedCollection = {
       ...collection,
-      ...collectionData
+      ...updateData,
+      updatedAt: new Date().toISOString()
     };
     
-    this.collectionsMap.set(id, updatedCollection);
+    this.collections.set(id, updatedCollection);
     return updatedCollection;
   }
-  
-  async deleteCollection(id: number): Promise<boolean> {
-    const deleted = this.collectionsMap.delete(id);
-    
-    // Also remove collection ID from any media that belonged to this collection
-    const mediaInCollection = Array.from(this.mediaMap.values())
-      .filter(media => media.collectionId === id);
-      
-    for (const item of mediaInCollection) {
-      const updatedItem = { ...item, collectionId: null };
-      this.mediaMap.set(item.id, updatedItem);
-    }
-    
-    return deleted;
+
+  async deleteCollection(id: number): Promise<void> {
+    this.collections.delete(id);
   }
-  
+
   // Media methods
-  async getAllMedia(): Promise<Media[]> {
-    return Array.from(this.mediaMap.values());
-  }
-  
-  async getMediaById(id: number): Promise<Media | undefined> {
-    return this.mediaMap.get(id);
-  }
-  
-  async getMediaByCollection(collectionId: number): Promise<Media[]> {
-    return Array.from(this.mediaMap.values())
-      .filter(media => media.collectionId === collectionId);
-  }
-  
-  async getFavoriteMedia(): Promise<Media[]> {
-    return Array.from(this.mediaMap.values())
-      .filter(media => media.isFavorite);
-  }
-  
-  async getRecentMedia(limit: number = 20): Promise<Media[]> {
-    return Array.from(this.mediaMap.values())
+  async getMediaByCollection(collectionId: number): Promise<MediaItem[]> {
+    return Array.from(this.mediaItems.values())
+      .filter(item => item.collectionId === collectionId)
       .sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
-      })
-      .slice(0, limit);
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
   }
-  
-  async createMedia(insertMedia: InsertMedia): Promise<Media> {
-    const id = this.mediaCurrentId++;
-    const createdAt = new Date();
-    const mediaItem: Media = { ...insertMedia, id, createdAt };
-    this.mediaMap.set(id, mediaItem);
-    return mediaItem;
+
+  async getMedia(id: number): Promise<MediaItem | undefined> {
+    return this.mediaItems.get(id);
   }
-  
-  async updateMedia(id: number, mediaData: Partial<InsertMedia>): Promise<Media | undefined> {
-    const mediaItem = this.mediaMap.get(id);
+
+  async createMedia(insertMedia: InsertMediaItem): Promise<MediaItem> {
+    const id = this.mediaIdCounter++;
+    const now = new Date().toISOString();
     
-    if (!mediaItem) {
-      return undefined;
-    }
-    
-    const updatedItem: Media = {
-      ...mediaItem,
-      ...mediaData
+    const media: MediaItem = {
+      id,
+      ...insertMedia,
+      createdAt: now,
+      updatedAt: now
     };
     
-    this.mediaMap.set(id, updatedItem);
-    return updatedItem;
-  }
-  
-  async toggleFavorite(id: number): Promise<Media | undefined> {
-    const mediaItem = this.mediaMap.get(id);
+    this.mediaItems.set(id, media);
     
-    if (!mediaItem) {
-      return undefined;
+    // Update the item count in the collection
+    const collection = await this.getCollection(insertMedia.collectionId);
+    if (collection) {
+      await this.updateCollection(collection.id, {
+        itemCount: (collection.itemCount || 0) + 1
+      });
     }
     
-    const updatedItem: Media = {
-      ...mediaItem,
-      isFavorite: !mediaItem.isFavorite
+    return media;
+  }
+
+  async updateMedia(id: number, updateData: Partial<InsertMediaItem>): Promise<MediaItem> {
+    const media = this.mediaItems.get(id);
+    
+    if (!media) {
+      throw new Error(`Media with id ${id} not found`);
+    }
+    
+    const updatedMedia = {
+      ...media,
+      ...updateData,
+      updatedAt: new Date().toISOString()
     };
     
-    this.mediaMap.set(id, updatedItem);
-    return updatedItem;
+    this.mediaItems.set(id, updatedMedia);
+    return updatedMedia;
   }
-  
-  async deleteMedia(id: number): Promise<boolean> {
-    return this.mediaMap.delete(id);
+
+  async deleteMedia(id: number): Promise<void> {
+    const media = this.mediaItems.get(id);
+    
+    if (media) {
+      // Update the item count in the collection
+      const collection = await this.getCollection(media.collectionId);
+      if (collection && collection.itemCount && collection.itemCount > 0) {
+        await this.updateCollection(collection.id, {
+          itemCount: collection.itemCount - 1
+        });
+      }
+      
+      this.mediaItems.delete(id);
+    }
   }
 }
 

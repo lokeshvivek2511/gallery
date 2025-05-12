@@ -1,67 +1,23 @@
-import { useState, useEffect } from 'react';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from './use-toast';
+import { createContext, useContext } from 'react';
 
-interface UseAuthReturn {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (password: string) => Promise<boolean>;
-  logout: () => void;
+interface AuthContextType {
+  authenticated: boolean;
+  setAuthenticated: (authenticated: boolean) => void;
 }
 
-/**
- * Hook for handling authentication
- */
-export function useAuth(): UseAuthReturn {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { toast } = useToast();
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  useEffect(() => {
-    // Check if user is already authenticated from localStorage
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    if (storedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
+export const AuthProvider = AuthContext.Provider;
 
-  /**
-   * Login with password
-   * @param password Password to authenticate with
-   * @returns Promise resolving to success status
-   */
-  const login = async (password: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      await apiRequest('POST', '/api/auth/login', { password });
-      setIsAuthenticated(true);
-      localStorage.setItem('isAuthenticated', 'true');
-      return true;
-    } catch (error) {
-      toast({
-        title: "Authentication failed",
-        description: "Incorrect password. Please try again.",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Logout user
-   */
-  const logout = (): void => {
-    localStorage.removeItem('isAuthenticated');
-    setIsAuthenticated(false);
-  };
-
-  return {
-    isAuthenticated,
-    isLoading,
-    login,
-    logout
-  };
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
+
+export const checkPassword = (password: string): boolean => {
+  // Simple password check
+  return password === 'lokiroja';
+};

@@ -1,57 +1,50 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
-
+// Collections table
 export const collections = pgTable("collections", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  coverImageUrl: text("cover_image_url"),
-  createdAt: timestamp("created_at").defaultNow(),
+  coverImage: text("cover_image"),
+  itemCount: integer("item_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
-export const media = pgTable("media", {
+// Media items table
+export const mediaItems = pgTable("media_items", {
   id: serial("id").primaryKey(),
-  fileName: text("file_name").notNull(),
-  fileType: text("file_type").notNull(), // image or video
-  fileUrl: text("file_url").notNull(),
-  note: text("note"),
+  collectionId: integer("collection_id").notNull().references(() => collections.id),
+  filename: text("filename").notNull(),
+  filepath: text("filepath"),
+  url: text("url").notNull(),
+  thumbnail: text("thumbnail"),
+  type: text("type").notNull().default("image"),
   isFavorite: boolean("is_favorite").default(false),
-  collectionId: integer("collection_id").references(() => collections.id),
-  createdAt: timestamp("created_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+// Zod schemas for validation
+export const insertCollectionSchema = createInsertSchema(collections).omit({
+  id: true,
+  itemCount: true,
+  createdAt: true,
+  updatedAt: true
 });
 
-export const insertCollectionSchema = createInsertSchema(collections).pick({
-  name: true,
-  description: true,
-  coverImageUrl: true,
+export const insertMediaSchema = createInsertSchema(mediaItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
 });
 
-export const insertMediaSchema = createInsertSchema(media).pick({
-  fileName: true,
-  fileType: true,
-  fileUrl: true,
-  note: true,
-  isFavorite: true,
-  collectionId: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
-export type InsertCollection = z.infer<typeof insertCollectionSchema>;
+// Types
 export type Collection = typeof collections.$inferSelect;
+export type InsertCollection = z.infer<typeof insertCollectionSchema>;
 
-export type InsertMedia = z.infer<typeof insertMediaSchema>;
-export type Media = typeof media.$inferSelect;
+export type MediaItem = typeof mediaItems.$inferSelect;
+export type InsertMediaItem = z.infer<typeof insertMediaSchema>;

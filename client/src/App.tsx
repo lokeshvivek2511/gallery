@@ -4,49 +4,42 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import PasswordScreen from "@/components/PasswordScreen";
-import Home from "@/pages/Home";
-import Collection from "@/pages/Collection";
-import Recent from "@/pages/Recent";
-import Favorites from "@/pages/Favorites";
-import HeartAnimation from './components/HeartAnimation';
-import { AppProvider, useApp } from "./contexts/AppContext";
+import Home from "@/pages/home";
+import Collection from "@/pages/collection";
+import { AuthProvider } from "./hooks/useAuth";
+import Login from "./components/Login";
+import { useState } from "react";
+import FloatingHearts from "./components/FloatingHearts";
 
-// Main app wrapper with providers
-function App() {
+function Router() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AppProvider>
-          <div className="relative min-h-screen bg-[#FFF5F5]">
-            <Toaster />
-            <AppContent />
-          </div>
-        </AppProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/collection/:id" component={Collection} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
-// The actual content, using the context
-function AppContent() {
-  const { isAuthenticated } = useApp();
-  
-  if (!isAuthenticated) {
-    return <PasswordScreen />;
+function App() {
+  const [authenticated, setAuthenticated] = useState(false);
+
+  if (!authenticated) {
+    return <Login onAuthenticated={() => setAuthenticated(true)} />;
   }
-  
+
   return (
-    <>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/collections/:id" component={Collection} />
-        <Route path="/recent" component={Recent} />
-        <Route path="/favorites" component={Favorites} />
-        <Route component={NotFound} />
-      </Switch>
-      <HeartAnimation />
-    </>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider value={{ authenticated, setAuthenticated }}>
+          <FloatingHearts />
+          <div className="min-h-screen flex flex-col">
+            <Toaster />
+            <Router />
+          </div>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -1,102 +1,67 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link, useLocation } from 'wouter';
-import { Heart, GalleryThumbnails, Upload, Download, FolderPlus } from 'lucide-react';
-import { useApp } from '../contexts/AppContext';
-import UploadModal from './UploadModal';
-import CreateCollectionModal from './CreateCollectionModal';
+import { Heart, Plus, ChevronDown } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'wouter';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const Header = () => {
-  const [location] = useLocation();
-  const { selectedTab, setSelectedTab } = useApp();
-  const [selectedMedia, setSelectedMedia] = useState<number[]>([]);
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [createCollectionModalOpen, setCreateCollectionModalOpen] = useState(false);
-  
-  const downloadSelected = () => {
-    // Simplified download function
-    alert('Download functionality temporarily disabled during development');
-  };
+interface HeaderProps {
+  onCreateCollection: () => void;
+}
+
+export default function Header({ onCreateCollection }: HeaderProps) {
+  const { setAuthenticated } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <>
-      <header className="sticky top-0 z-40 bg-white shadow-md">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="bg-white shadow-md px-6 py-4 sticky top-0 z-30">
+      <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+        <div className="flex items-center mb-4 sm:mb-0">
           <Link href="/">
-            <div className="flex items-center cursor-pointer">
-              <GalleryThumbnails className="h-6 w-6 text-[#E36588] mr-2" />
-              <h1 className="text-2xl md:text-3xl font-dancing text-[#E36588]">Love Gallery</h1>
-            </div>
+            <a className="flex items-center">
+              <Heart className="text-[hsl(var(--love-red))] mr-2" size={24} fill="currentColor" />
+              <h1 className="font-display text-2xl font-bold text-[hsl(var(--love-dark))]">Love Memories</h1>
+            </a>
           </Link>
-          
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              className="hidden md:flex items-center space-x-1 bg-[#E36588] text-white px-3 py-2 rounded-lg hover:bg-[#D14D72] transition duration-300"
-              onClick={() => setCreateCollectionModalOpen(true)}
-            >
-              <FolderPlus className="h-4 w-4 mr-1" />
-              <span>Create Collection</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className="flex items-center space-x-1 bg-[#E36588] text-white px-3 py-2 rounded-lg hover:bg-[#D14D72] transition duration-300"
-              onClick={() => setUploadModalOpen(true)}
-            >
-              <Upload className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Upload</span>
-            </Button>
-            
-            {selectedMedia.length > 0 && (
-              <Button
-                variant="ghost"
-                className="hidden md:flex items-center space-x-1 bg-[#5A4B53] text-white px-3 py-2 rounded-lg hover:opacity-90 transition duration-300"
-                onClick={downloadSelected}
-              >
-                <Download className="h-4 w-4 mr-1" />
-                <span>Download ({selectedMedia.length})</span>
-              </Button>
-            )}
-          </div>
         </div>
         
-        <div className="flex items-center space-x-4 px-4 mb-0 overflow-x-auto pb-2 scrollbar-hide border-b">
-          <button
-            className={`px-4 py-2 ${selectedTab === 'all' ? 'text-[#E36588] border-b-2 border-[#E36588]' : 'text-[#5A4B53] hover:text-[#E36588] border-b-2 border-transparent hover:border-[#F8C8DC]'} font-medium transition-colors`}
-            onClick={() => setSelectedTab('all')}
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={onCreateCollection}
+            className="flex items-center bg-[hsl(var(--love-pink))] hover:bg-[hsl(var(--love-red))] text-[hsl(var(--love-dark))] hover:text-white py-2 px-4 rounded-full transition duration-300 font-body"
           >
-            All Memories
-          </button>
-          <button
-            className={`px-4 py-2 ${selectedTab === 'collections' ? 'text-[#E36588] border-b-2 border-[#E36588]' : 'text-[#5A4B53] hover:text-[#E36588] border-b-2 border-transparent hover:border-[#F8C8DC]'} font-medium transition-colors`}
-            onClick={() => setSelectedTab('collections')}
-          >
-            Collections
-          </button>
-          <Link href="/recent">
-            <button
-              className={`px-4 py-2 ${location === '/recent' ? 'text-[#E36588] border-b-2 border-[#E36588]' : 'text-[#5A4B53] hover:text-[#E36588] border-b-2 border-transparent hover:border-[#F8C8DC]'} font-medium transition-colors`}
-              onClick={() => setSelectedTab('recent')}
-            >
-              Recent
-            </button>
-          </Link>
-          <Link href="/favorites">
-            <button
-              className={`px-4 py-2 ${location === '/favorites' ? 'text-[#E36588] border-b-2 border-[#E36588]' : 'text-[#5A4B53] hover:text-[#E36588] border-b-2 border-transparent hover:border-[#F8C8DC]'} font-medium transition-colors`}
-              onClick={() => setSelectedTab('favorites')}
-            >
-              Favorites
-            </button>
-          </Link>
+            <Plus className="mr-2" size={16} /> New Collection
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center space-x-1 text-gray-600 hover:text-[hsl(var(--love-dark))] transition duration-300">
+                <span className="font-body">Our Story</span>
+                <Avatar className="w-10 h-10 rounded-full border-2 border-[hsl(var(--love-pink))]">
+                  <AvatarImage src="https://images.unsplash.com/photo-1522771930-78848d9293e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40" alt="User Profile" />
+                  <AvatarFallback>US</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem className="font-body cursor-pointer">Settings</DropdownMenuItem>
+              <DropdownMenuItem className="font-body cursor-pointer">Help</DropdownMenuItem>
+              <DropdownMenuItem 
+                className="font-body cursor-pointer" 
+                onClick={() => setAuthenticated(false)}
+              >
+                Lock App
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </header>
-      
-      <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
-      <CreateCollectionModal open={createCollectionModalOpen} onOpenChange={setCreateCollectionModalOpen} />
-    </>
+      </div>
+    </header>
   );
-};
-
-export default Header;
+}
