@@ -1,11 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
 import { insertCollectionSchema, insertMediaSchema } from "@shared/schema";
+// import { storage } from "./storage";
+import { MongoStorage } from "./mongodb-storage";
+
+// Create MongoDB storage instance
+const storage = new MongoStorage();
 
 // Create uploads directory if it doesn't exist
 const uploadDir = path.join(process.cwd(), "uploads");

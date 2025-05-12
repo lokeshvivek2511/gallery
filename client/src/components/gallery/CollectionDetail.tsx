@@ -276,10 +276,8 @@ export default function CollectionDetail({ id }: CollectionDetailProps) {
     <>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <Link href="/">
-            <a className="flex items-center text-gray-600 hover:text-[hsl(var(--love-dark))] mb-2 transition duration-300 font-body">
-              <ArrowLeft className="mr-2" size={16} /> Back to Collections
-            </a>
+          <Link href="/" className="flex items-center text-gray-600 hover:text-[hsl(var(--love-dark))] mb-2 transition duration-300 font-body">
+            <ArrowLeft className="mr-2" size={16} /> Back to Collections
           </Link>
           <h2 className="font-display text-2xl text-gray-800 font-bold">{collection.name}</h2>
           <p className="text-gray-600 font-body">
