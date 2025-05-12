@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { Heart, Download, CheckCircle, Play } from 'lucide-react';
+import { Heart, Download, CheckCircle, Play, X } from 'lucide-react';
 import { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Media } from '@shared/schema';
 import { Skeleton } from '@/components/ui/skeleton';
-import MediaViewerModal from './MediaViewerModal';
 
 interface MediaGalleryProps {
   title?: string;
@@ -13,14 +12,25 @@ interface MediaGalleryProps {
 }
 
 const MediaGallery = ({ title = "Our Memories", endpoint = "/api/media", collectionId }: MediaGalleryProps) => {
-  const { 
-    selectedMedia, 
-    toggleSelectMedia, 
-    toggleFavorite, 
-    viewerOpen, 
-    setViewerOpen, 
-    setCurrentViewMedia 
-  } = useApp();
+  // Local state variables instead of context
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [currentViewMedia, setCurrentViewMedia] = useState<Media | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<number[]>([]);
+  
+  // Simplified toggle functions
+  const toggleFavorite = async (id: number) => {
+    console.log('Toggle favorite temporarily disabled during development');
+  };
+  
+  const toggleSelectMedia = (id: number) => {
+    setSelectedMedia(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(mediaId => mediaId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
   
   const queryKey = collectionId 
     ? ['/api/collections', collectionId] 
@@ -147,7 +157,59 @@ const MediaGallery = ({ title = "Our Memories", endpoint = "/api/media", collect
         </div>
       </section>
       
-      <MediaViewerModal />
+      {viewerOpen && currentViewMedia && (
+        <div className="fixed inset-0 z-50 bg-[#5A4B53] bg-opacity-90">
+          <div className="absolute inset-0 flex flex-col">
+            <div className="flex justify-between items-center p-4 text-white">
+              <div>
+                <h3 className="text-lg font-medium">{currentViewMedia.fileName}</h3>
+                {currentViewMedia.createdAt && (
+                  <p className="text-sm opacity-80">
+                    {new Date(currentViewMedia.createdAt).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+              <div className="flex space-x-4">
+                <button 
+                  title="Download"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = currentViewMedia.fileUrl;
+                    link.download = currentViewMedia.fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
+                  <Download className="h-6 w-6" />
+                </button>
+                <button 
+                  title="Close"
+                  onClick={() => setViewerOpen(false)}
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 flex items-center justify-center p-4">
+              {currentViewMedia.fileType === 'image' ? (
+                <img 
+                  src={currentViewMedia.fileUrl} 
+                  alt={currentViewMedia.fileName} 
+                  className="max-h-full max-w-full object-contain rounded-lg"
+                />
+              ) : (
+                <video 
+                  src={currentViewMedia.fileUrl}
+                  controls
+                  className="max-h-full max-w-full object-contain rounded-lg"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

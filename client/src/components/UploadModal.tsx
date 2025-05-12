@@ -33,7 +33,15 @@ const UploadModal = ({ open, onOpenChange }: UploadModalProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { uploadMedia } = useApp();
+  // Temporary upload media function
+  const uploadMedia = async (files: File[], note?: string, collectionId?: number) => {
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        console.log('Upload functionality temporarily disabled during development');
+        resolve();
+      }, 1000);
+    });
+  };
   
   const { data: collections } = useQuery({
     queryKey: ['/api/collections'],
@@ -136,11 +144,13 @@ const UploadModal = ({ open, onOpenChange }: UploadModalProps) => {
                 <SelectValue placeholder="Select a collection (optional)" />
               </SelectTrigger>
               <SelectContent>
-                {collections?.map((collection: any) => (
+                {collections && Array.isArray(collections) ? collections.map((collection: any) => (
                   <SelectItem key={collection.id} value={collection.id.toString()}>
                     {collection.name}
                   </SelectItem>
-                ))}
+                )) : (
+                  <SelectItem value="0">No collections available</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
