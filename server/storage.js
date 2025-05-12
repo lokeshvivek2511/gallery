@@ -221,6 +221,4 @@ class MongoStorage {
   }
 }
 
-module.exports = {
-  storage: new MongoStorage()
-};
+export const storage = new MongoStorage();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Grid, List, AlertCircle } from 'lucide-react';
+import { Grid, List, AlertCircle, Heart } from 'lucide-react';
 import CollectionCard from './CollectionCard';
 import { Collection } from '@shared/schema';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ interface CollectionsGridProps {
 export default function CollectionsGrid({ onCreateNew }: CollectionsGridProps) {
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
   
-  const { data: collections, isLoading, error } = useQuery({
+  const { data: collections, isLoading, error } = useQuery<Collection[]>({
     queryKey: ['/api/collections'],
   });
 
