@@ -23,11 +23,9 @@ export default function Header({ onCreateCollection }: HeaderProps) {
     <header className="bg-white shadow-md px-6 py-4 sticky top-0 z-30">
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
         <div className="flex items-center mb-4 sm:mb-0">
-          <Link href="/">
-            <a className="flex items-center">
-              <Heart className="text-[hsl(var(--love-red))] mr-2" size={24} fill="currentColor" />
-              <h1 className="font-display text-2xl font-bold text-[hsl(var(--love-dark))]">Love Memories</h1>
-            </a>
+          <Link href="/" className="flex items-center">
+            <Heart className="text-[hsl(var(--love-red))] mr-2" size={24} fill="currentColor" />
+            <h1 className="font-display text-2xl font-bold text-[hsl(var(--love-dark))]">Love Memories</h1>
           </Link>
         </div>
         
