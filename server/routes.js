@@ -1,8 +1,12 @@
-const { createServer } = require('http');
-const { storage } = require('./storage');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+import { createServer } from 'http';
+import { storage } from './storage.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Create uploads directory if it doesn't exist
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -273,4 +277,4 @@ async function registerRoutes(app) {
   return httpServer;
 }
 
-module.exports = { registerRoutes };
+export { registerRoutes };

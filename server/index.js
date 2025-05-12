@@ -1,7 +1,7 @@
-const express = require('express');
-const connectDB = require('./db');
-const { registerRoutes } = require('./routes');
-const { setupVite, serveStatic, log } = require('./vite');
+import express from 'express';
+import connectDB from './db.js';
+import { registerRoutes } from './routes.js';
+import { setupVite, serveStatic, log } from './vite.js';
 
 const app = express();
 app.use(express.json());

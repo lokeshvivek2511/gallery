@@ -1,5 +1,5 @@
-const Collection = require('./models/Collection');
-const MediaItem = require('./models/MediaItem');
+import Collection from './models/Collection.js';
+import MediaItem from './models/MediaItem.js';
 
 // Storage interface for MongoDB
 class MongoStorage {
