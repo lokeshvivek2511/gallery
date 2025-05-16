@@ -1,13 +1,18 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import connectDB from "./db";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
-// Increase JSON body limit to handle larger payloads
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
+// Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -39,29 +44,20 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Connect to MongoDB
   await connectDB();
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+  // Serve static files from client build
+  const staticPath = path.resolve(__dirname, "../client/dist");
+  app.use(express.static(staticPath));
 
-    res.status(status).json({ message });
-    throw err;
+  // Serve index.html for SPA routing
+  app.get("*", (_, res) => {
+    res.sendFile(path.join(staticPath, "index.html"));
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, 'localhost', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
   });
 })();
