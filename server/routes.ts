@@ -12,9 +12,14 @@ import { MongoStorage } from "./mongodb-storage";
 const storage = new MongoStorage();
 
 // Create uploads directory if it doesn't exist
+// Near the top of the file:
 const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true, mode: 0o755 });
+  }
+} catch (error) {
+  console.error('Failed to create uploads directory:', error);
 }
 
 // Configure multer for file uploads
@@ -79,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get collection by ID
   app.get('/api/collections/:id', async (req, res, next) => {
     try {
-      const collection = await storage.getCollection(parseInt(req.params.id));
+      const collection = await storage.getCollection(req.params.id);
       
       if (!collection) {
         return res.status(404).json({ message: 'Collection not found' });
@@ -110,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update collection
   app.patch('/api/collections/:id', async (req, res, next) => {
     try {
-      const collectionId = parseInt(req.params.id);
+      const collectionId = req.params.id;
       const existingCollection = await storage.getCollection(collectionId);
       
       if (!existingCollection) {
@@ -135,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete collection
   app.delete('/api/collections/:id', async (req, res, next) => {
     try {
-      const collectionId = parseInt(req.params.id);
+      const collectionId = req.params.id;
       const existingCollection = await storage.getCollection(collectionId);
       
       if (!existingCollection) {
@@ -170,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all media items in a collection
   app.get('/api/collections/:id/media', async (req, res, next) => {
     try {
-      const collectionId = parseInt(req.params.id);
+      const collectionId = req.params.id;
       const mediaItems = await storage.getMediaByCollection(collectionId);
       res.json(mediaItems);
     } catch (error) {
@@ -181,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload media to a collection
   app.post('/api/collections/:id/upload', upload.array('files', 10), async (req, res, next) => {
     try {
-      const collectionId = parseInt(req.params.id);
+      const collectionId = req.params.id;
       const existingCollection = await storage.getCollection(collectionId);
       
       if (!existingCollection) {
@@ -219,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Toggle favorite status
   app.patch('/api/media/:id/favorite', async (req, res, next) => {
     try {
-      const mediaId = parseInt(req.params.id);
+      const mediaId = req.params.id; // Remove parseInt, use string ID directly
       const media = await storage.getMedia(mediaId);
       
       if (!media) {
@@ -237,11 +242,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
-  
-  // Delete media
+
+  // Also update the delete media endpoint to use string ID
   app.delete('/api/media/:id', async (req, res, next) => {
     try {
-      const mediaId = parseInt(req.params.id);
+      const mediaId = req.params.id; // Remove parseInt here too
       const media = await storage.getMedia(mediaId);
       
       if (!media) {
@@ -285,8 +290,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Add error handler middleware inside the function
+  app.use((err: ApiError, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Error:', err);
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    
+    res.status(status).json({ 
+      message,
+      error: app.get('env') === 'development' ? err : {}
+    });
+  });
+
   // Create the HTTP server
   const httpServer = createServer(app);
 
   return httpServer;
+}
+
+// Keep the interface definition at the top of the file
+interface ApiError extends Error {
+  status?: number;
+  statusCode?: number;
 }

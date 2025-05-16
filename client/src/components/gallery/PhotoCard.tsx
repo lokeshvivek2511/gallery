@@ -20,17 +20,50 @@ export default function PhotoCard({ item, onClick, onSelect, isSelected, viewTyp
   // Toggle favorite mutation
   const toggleFavoriteMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('PATCH', `/api/media/${item.id}/favorite`, {
+      const response = await apiRequest('PATCH', `/api/media/${item.id}/favorite`, {
         isFavorite: !item.isFavorite
       });
+      return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/collections/${item.collectionId}/media`] });
+    onMutate: async () => {
+      // Optimistic update
+      const queryKey = [`/api/collections/${item.collectionId}/media`];
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousMedia = queryClient.getQueryData(queryKey);
+
+      queryClient.setQueryData(queryKey, (old: MediaItem[] | undefined) => {
+        if (!old) return [];
+        return old.map(media => 
+          media.id === item.id 
+            ? { ...media, isFavorite: !media.isFavorite }
+            : media
+        );
+      });
+
+      return { previousMedia };
+    },
+    onError: (err, _, context) => {
+      // Rollback on error
+      if (context?.previousMedia) {
+        queryClient.setQueryData(
+          [`/api/collections/${item.collectionId}/media`],
+          context.previousMedia
+        );
+      }
+      console.error('Error toggling favorite:', err);
+    },
+    onSettled: () => {
+      // Always refetch to ensure sync with server
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/collections/${item.collectionId}/media`] 
+      });
     }
   });
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     toggleFavoriteMutation.mutate();
   };
 
